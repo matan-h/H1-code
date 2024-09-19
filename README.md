@@ -1,6 +1,7 @@
 # H1-code
 
-H1-code is a command line tool to level up codebases to `H1` (high) quality. It processes files in a specified directory, creates backups, and applies AI-based improvements to enhance code quality.
+H1-code is a command line tool to level up codebases to `H1` (high) quality using AI (local by default). It processes files in a specified directory, creates backups, and applies AI-based improvements to enhance code quality.
+## screenshot
 
 ## Installation
 Recommended: Install using `pipx`:
@@ -33,6 +34,17 @@ By default, it assumes the name of the language (as used in Markdown code blocks
 by default it assumes you have an [Ollama](https://github.com/ollama/ollama) server, with the model of `llama3.1`.
 You can change the model using `--model` option, the URL (for example, to ClosedAI) with `--base_url` option, and api-key using `--api_key`.
 
+## H1 code quality.
+H1 code quality defines what clean and clear code means, as understood by an LLM, according to my perspective. You can find the exact system prompt in the [`ai.py`](https://github.com/matan-h/H1-code/blob/main/h1_code/ai.py#L4) file, but the main points are:
+
+* No redundant or duplicate code.
+* Comments should be useful and non-trivial. Without commented-out code.
+* limited hallucinations - the AI should not try to explain things it don't understand.
+* minimal documentation - it should create minimal explanation when needed. 
+* if really needed, and it won't break your code, changing names for clarity.
+* Follow the recommended syntax and conventions of the language.
+
+> Note: by its very nature, the Converter to H1 doesn't always result in valid code, so make sure you check the files after the convert with an IDE to see if there are errors.
 
 ## Backup Folders
 
