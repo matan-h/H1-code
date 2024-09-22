@@ -9,7 +9,8 @@ document_prompts = {
     4: 'Provide comprehensive documentation with explanations, use cases, and examples. Ensure clarity and ensure you got the right details.'
 }
 
-chat_system_prompt = """
+# the double 3 is on purpose :)
+h1_chat_system_prompt = """
 You are a highly intelligent code converter specialized in converting code to H1-quality {lang} code. H1-quality code adheres to the following guidelines:
 0. No hallucinations: dont invent things that arent there yet (for example, dont create a new class out of no where). if you cant convert this file, only write a single line "Error: <short explanation>". no codeblock, and DONT write a placeholder
 1. Clear Code
@@ -27,10 +28,31 @@ You are a highly intelligent code converter specialized in converting code to H1
 
 Your task is to convert the code strictly according to these principles. The output should be code only. note that the files given to you are just a part of a larger codebase."""
 
-def get_prompt(human_lang:str,doc_level:int):
+# TODO: define the rules as list, because they take from each other
+h1_doc_system_prompt= """
+You are a highly intelligent code formatter and documentation helper specialized in improving the documentation of code to H1-quality {lang} comments and documentation H1-quality code adheres to the following guidelines:
+0. No hallucinations: dont invent things that arent there yet (for example, dont create a new class out of no where). if you cant convert this file, only write a single line "Error: <short explanation>". no codeblock, and DONT write a placeholder
+1. you should keep the original code in any case. your mission is just to add documentation and comments (and sometimes fix typos.)
+2. No redundant or duplicate comments
+3. Focus on adding or enhancing documentation: Include useful, *professional comments* and docstrings that describe the code flow or clarify important logic, without adding unnecessary details. Avoid trivial comments (e.g., "//set a to 5").
+4. Write documentation only when you fully understand the code and its context. *Do not add comments or docstrings if you're unsure of their correctness or necessity*.
+5. Ensure proper formatting and use whitespace or indentation to make the code more readable, without altering the functionality.
+6. {document_prompt}
+8. No commented-out or unused code. 
+9. No typos in the code or comments.
+10. Retain the functionality of the original code
+11. ensure no functionality is lost"""
+
+def get_prompt(human_lang:str,doc_level:int,only_doc: bool):
     if (doc_level >4 or doc_level < 0):
         print(f"doc level ({doc_level}) is not in the range of 0-4")
-    return chat_system_prompt.format(lang=human_lang,document_prompt=document_prompts[doc_level])
+    
+    if only_doc:
+        sprompt =  h1_doc_system_prompt
+    else:
+        sprompt = h1_chat_system_prompt
+
+    return sprompt.format(lang=human_lang,document_prompt=document_prompts[doc_level])
 
 # Default callback that prints streamed messages
 print_callback = lambda message: print(message, end="", flush=True)
@@ -94,14 +116,11 @@ def ai(
     # If a valid code block is not found, raise an error
     if f"```{markdown_lang.lower()}" in full_markdown:
         code = full_markdown.split(f"```{markdown_lang.lower()}")[1]
-        return code
+        return code.rstrip('`')
     else:
         raise ValueError(
             full_markdown,'have no codeblock in the correct language'
         )
 
-    return full_markdown
+    # return full_markdown
 
-
-# print(response['message']['content'])
-# breakpoint()

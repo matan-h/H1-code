@@ -47,12 +47,15 @@ H1 code quality defines what clean and clear code means, as understood by an LLM
 > Note: by its very nature, the Converter to H1 doesn't always result in valid code, so make sure you check the files after the convert with an IDE to see if there are errors.
 
 ## Documentation-level
-you can use choose the documentation level use `-l <0-4>` or `--doc-level <0-4>`:
+you can use choose the documentation level use `-lvl <0-4>` or `--doc-level <0-4>`:
 -   0. No docstring or documentation for functions at all, but still try to explain in comments when absolutely needed.
 -   1. (the default) Very minimal documentation, ideally one line or less.
--   2. Minimal documentation, brief overview in 2-3 sentences, focusing on key points.
+-   2. Minimal documentation, brief overview in 2–3 sentences, focusing on key points.
 -   3. Moderate documentation, providing some explanations and key details, but avoiding unnecessary depth.
 -   4. Detailed documentation, including explanations, use cases, and examples.
+
+### Documentation-only
+you can use the option `--doc` to Only write documentation, without improving the code quality
 
 ## Backup Folders
 

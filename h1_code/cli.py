@@ -4,6 +4,8 @@ import sys
 from .ai import ai,AiConfig,get_prompt
 from rich.progress import track
 from rich import print
+BAK_PREFIX = ".h2-backup"
+
 class StreamLinePrint:
     def __init__(self):
         self.line = ''
@@ -15,7 +17,7 @@ class StreamLinePrint:
 
 def create_backup_folder(base_folder: str, single_backup: bool) -> Path:
     """Create a sequential or single backup folder based on user input."""
-    base_backup = Path(base_folder + '.h2-backup')
+    base_backup = Path(BAK_PREFIX+base_folder)
     
     if single_backup:
         # If the user wants only a single backup folder, return the base folder
@@ -28,7 +30,7 @@ def create_backup_folder(base_folder: str, single_backup: bool) -> Path:
     
     return backup_folder
 
-def process_files(folder: str, ext: str,lang_name:str,single_backup: bool,doc_level:int,config:AiConfig):
+def process_files(folder: str, ext: str,lang_name:str,single_backup: bool,doc_level:int,only_doc:bool,config:AiConfig):
     path = Path(folder)
     
     # Validate that the folder is indeed a directory
@@ -47,7 +49,7 @@ def process_files(folder: str, ext: str,lang_name:str,single_backup: bool,doc_le
     for p in track(files,transient=True,description="Converting"):
         source_code = p.read_text()
 
-        if (p == backup or backup in p.parents):
+        if (p == backup or backup in p.parents or p.name.startswith(BAK_PREFIX)):
             continue
 
         backup_file = backup.joinpath(p.relative_to(path))
@@ -56,7 +58,7 @@ def process_files(folder: str, ext: str,lang_name:str,single_backup: bool,doc_le
 
         print('----', p.name, '----')
         try:
-            h1_code = (ai(source_code, lang_name ,p.relative_to(path),get_prompt(lang_name,doc_level=doc_level),config,StreamLinePrint().add))
+            h1_code = (ai(source_code, lang_name ,p.relative_to(path),get_prompt(lang_name,doc_level=doc_level,only_doc=only_doc),config,StreamLinePrint().add))
         except ValueError as e:
             print('\nError: cannot get code on',p.name)
             error = f'// Error: cannot get code on file: "{p}".AI Message: \n"{e.args[0]}"'
@@ -78,14 +80,14 @@ def main():
     parser.add_argument('--single-backup', action='store_true', help='Use a single backup folder without numbering (default is to create sequential backups).')
     parser.add_argument('-n','--lang-name', type=str, default='', help='The name name of the language in markdown (e.g. python)')
     parser.add_argument(
-    "-l",
     "--doc-level", 
+    "--lvl",
     type=int, 
     choices=[0, 1, 2, 3, 4],
     default=1,
     help="0: No docs, 1: Very minimal, 2: Minimal, 3: Moderate, 4: Detailed. (Default:1)"
 )
-
+    parser.add_argument('--only-doc',"--doc", action='store_true', help='Only write documentation,without improving the code quality.')
 
     args = parser.parse_args()
 
@@ -93,4 +95,4 @@ def main():
     config = AiConfig(model=args.model, base_url=args.base_url, api_key=args.api_key)
 
     # Process files in the folder with the given extension and AiConfig
-    process_files(folder=args.folder, ext=args.ext, lang_name=args.lang_name or args.ext.capitalize(),single_backup=args.single_backup,doc_level=args.doc_level,config=config)
+    process_files(folder=args.folder, ext=args.ext, lang_name=args.lang_name or args.ext.capitalize(),single_backup=args.single_backup,doc_level=args.doc_level,only_doc=args.only_doc,config=config)
